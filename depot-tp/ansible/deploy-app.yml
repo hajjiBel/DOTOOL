@@ -1,0 +1,39 @@
+---
+# TP4 - Déploiement de l'image Docker sur le serveur de test (appelé par Jenkins)
+#   ansible-playbook deploy-app.yml -e image_tag=12
+- name: Déployer le conteneur devops-demo
+  hosts: webservers
+  become: true
+  vars:
+    registry: 192.168.56.10:5000
+    image_name: devops-demo
+    image_tag: latest
+    host_port: 8080
+
+  tasks:
+    - name: Télécharger l'image depuis le registre
+      community.docker.docker_image:
+        name: "{{ registry }}/{{ image_name }}"
+        tag: "{{ image_tag }}"
+        source: pull
+        force_source: true
+
+    - name: Lancer (ou recréer) le conteneur
+      community.docker.docker_container:
+        name: devops-demo
+        image: "{{ registry }}/{{ image_name }}:{{ image_tag }}"
+        state: started
+        recreate: true
+        restart_policy: unless-stopped
+        published_ports:
+          - "{{ host_port }}:8080"
+        env:
+          APP_VERSION: "{{ image_tag }}"
+
+    - name: Attendre que l'application soit saine
+      ansible.builtin.uri:
+        url: "http://localhost:{{ host_port }}/actuator/health"
+      register: health
+      until: health.status == 200
+      retries: 20
+      delay: 3

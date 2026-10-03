@@ -1,0 +1,47 @@
+---
+# Mini-TP Ansible : un serveur web configuré par variables, template et handler
+- name: Serveur web de démonstration
+  hosts: webservers
+  become: true
+  vars:
+    web_port: 8090
+    page_title: "Serveur configuré par Ansible"
+    web_root: /var/www/demo
+  tasks:
+    - name: Installer nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Créer le répertoire du site
+      ansible.builtin.file:
+        path: "{{ web_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Générer la page d'accueil
+      ansible.builtin.template:
+        src: index.html.j2
+        dest: "{{ web_root }}/index.html"
+        mode: "0644"
+
+    - name: Configurer le site nginx
+      ansible.builtin.template:
+        src: demo.conf.j2
+        dest: /etc/nginx/conf.d/demo.conf
+        mode: "0644"
+      notify: Recharger nginx
+
+    - name: Nginx démarré et activé
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Recharger nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

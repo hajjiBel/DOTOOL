@@ -1,0 +1,23 @@
+// Retour arrière : redéployer une version connue du registre (scénario d'entreprise, jour 2)
+pipeline {
+    agent any
+    parameters {
+        string(name: 'TAG', defaultValue: '', description: 'Tag de l\'image à redéployer (ex. 12)')
+    }
+    environment {
+        TARGET_HOST = '192.168.56.11'
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible/ansible.cfg"
+    }
+    stages {
+        stage('Contrôle du paramètre') {
+            steps { script { if (!params.TAG?.trim()) { error 'Renseignez le paramètre TAG' } } }
+        }
+        stage('Checkout') { steps { checkout scm } }
+        stage('Redéploiement') {
+            steps { sh 'ansible-playbook ansible/deploy-app.yml -e image_tag=$TAG' }
+        }
+        stage('Vérification') {
+            steps { sh 'curl -fs http://$TARGET_HOST:8080/api/info | grep -q "\\"version\\":\\"$TAG\\""' }
+        }
+    }
+}

@@ -1,0 +1,39 @@
+filebeat.inputs:
+  # Logs des conteneurs Docker (application Spring Boot)
+  - type: filestream
+    id: docker-containers
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      - container:
+          stream: all
+          format: docker
+      # Regroupe les stack traces Java en un seul événement
+      - multiline:
+          type: pattern
+          pattern: '^[[:space:]]+(at|\.{3})[[:space:]]|^Caused by:'
+          negate: false
+          match: after
+    fields:
+      log_type: app
+    fields_under_root: true
+
+  # Logs d'accès Nginx (installé par Ansible au TP2)
+  - type: filestream
+    id: nginx-access
+    paths:
+      - /var/log/nginx/access.log
+    fields:
+      log_type: nginx
+    fields_under_root: true
+
+processors:
+  - add_host_metadata: ~
+  - add_docker_metadata: ~
+  - drop_event:
+      when:
+        equals:
+          container.name: filebeat
+
+output.logstash:
+  hosts: ["192.168.56.13:5044"]

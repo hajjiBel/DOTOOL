@@ -1,0 +1,47 @@
+groups:
+  - name: infrastructure
+    rules:
+      - alert: InstanceDown
+        expr: up{job="node"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "Machine {{ $labels.host }} injoignable"
+
+      - alert: HighCpuUsage
+        expr: 100 - (avg by (host) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "CPU > 80 % sur {{ $labels.host }}"
+          description: "Utilisation CPU : {{ printf \"%.1f\" $value }} %"
+
+      - alert: HighMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "Mémoire > 90 % sur {{ $labels.host }}"
+
+      - alert: LowDiskSpace
+        expr: 100 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"} * 100) > 85
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Disque > 85 % sur {{ $labels.host }}"
+
+  - name: application
+    rules:
+      - alert: AppDown
+        expr: up{job="app"} == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations:
+          summary: "L'application devops-demo ne répond plus"
+
+      - alert: AppHighErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{job="app",status=~"5.."}[1m])) > 0.2
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Taux d'erreurs HTTP 5xx élevé"

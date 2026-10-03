@@ -1,0 +1,12 @@
+route:
+  receiver: default
+  group_by: [alertname, host]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+
+receivers:
+  - name: default
+    # Exercice : ajouter un webhook ou un e-mail
+    # webhook_configs:
+    #   - url: http://192.168.56.10:5001/alert

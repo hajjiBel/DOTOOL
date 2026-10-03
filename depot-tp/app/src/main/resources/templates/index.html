@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>DevOps Demo - Tâches</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    .meta { color: #666; font-size: .9rem; }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; gap: .5rem; align-items: center; padding: .4rem 0; border-bottom: 1px solid #eee; }
+    li.done .task-title { text-decoration: line-through; color: #999; }
+    .task-title { flex: 1; }
+    form.inline { display: inline; }
+  </style>
+</head>
+<body>
+  <h1 id="page-title">DevOps Demo - Gestionnaire de tâches</h1>
+  <p id="version" class="meta" th:text="'Version ' + ${version} + ' - hôte ' + ${host}">Version</p>
+
+  <form th:action="@{/tasks}" method="post">
+    <input type="text" id="title" name="title" placeholder="Nouvelle tâche" required>
+    <button type="submit" id="add-btn">Ajouter</button>
+  </form>
+
+  <ul id="task-list">
+    <li th:each="t : ${tasks}" th:classappend="${t.done} ? 'done'">
+      <span class="task-title" th:text="${t.title}">titre</span>
+      <form class="inline" th:action="@{/tasks/{id}/toggle(id=${t.id})}" method="post">
+        <button type="submit" class="toggle-btn">Terminer / rouvrir</button>
+      </form>
+      <form class="inline" th:action="@{/tasks/{id}/delete(id=${t.id})}" method="post">
+        <button type="submit" class="delete-btn">Supprimer</button>
+      </form>
+    </li>
+  </ul>
+  <p th:if="${#lists.isEmpty(tasks)}" id="empty-msg" class="meta">Aucune tâche pour le moment.</p>
+</body>
+</html>

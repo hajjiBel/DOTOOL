@@ -1,0 +1,7 @@
+target/
+.vagrant/
+.shared/
+*.log
+.idea/
+.vscode/
+*.iml

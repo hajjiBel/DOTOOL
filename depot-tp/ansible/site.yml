@@ -1,0 +1,158 @@
+---
+# TP2 - Préparer le serveur applicatif (Java + Nginx + utilisateurs + déploiement du JAR)
+#   ansible-playbook site.yml --check --diff     # simulation
+#   ansible-playbook site.yml                    # exécution
+#   ansible-playbook site.yml                    # 2e exécution : changed=0 (idempotence)
+- name: Préparer et déployer l'application sur le serveur cible
+  hosts: webservers
+  become: true
+  vars:
+    app_user: appsvc
+    app_dir: /opt/devops-demo
+    app_port: 8081
+    app_jar_src: "{{ playbook_dir }}/../app/target/devops-demo.jar"
+    operators:
+      - alice
+      - bob
+
+  pre_tasks:
+    - name: Vérifier que le JAR a été construit (mvn package)
+      ansible.builtin.stat:
+        path: "{{ app_jar_src }}"
+      delegate_to: localhost
+      become: false
+      register: jar
+    - name: Arrêter si le JAR est absent
+      ansible.builtin.assert:
+        that: jar.stat.exists
+        fail_msg: "JAR introuvable : lancez d'abord 'cd ../app && mvn -DskipTests package'"
+
+  tasks:
+    - name: Mettre à jour le cache APT
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Installer Java et Nginx
+      ansible.builtin.apt:
+        name:
+          - openjdk-21-jre-headless
+          - nginx
+          - curl
+        state: present
+
+    - name: Créer l'utilisateur système du service
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Créer les comptes opérateurs
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: adm
+        append: true
+        shell: /bin/bash
+      loop: "{{ operators }}"
+
+    - name: Créer le répertoire applicatif
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    - name: Déployer le JAR
+      ansible.builtin.copy:
+        src: "{{ app_jar_src }}"
+        dest: "{{ app_dir }}/devops-demo.jar"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0644"
+      notify: Redémarrer devops-demo
+
+    - name: Installer l'unité systemd
+      ansible.builtin.template:
+        src: devops-demo.service.j2
+        dest: /etc/systemd/system/devops-demo.service
+        mode: "0644"
+      notify:
+        - Recharger systemd
+        - Redémarrer devops-demo
+
+    - name: Configurer Nginx (reverse proxy)
+      ansible.builtin.template:
+        src: nginx-app.conf.j2
+        dest: /etc/nginx/sites-available/devops-demo
+        mode: "0644"
+      notify: Recharger nginx
+
+    - name: Activer le site Nginx
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/devops-demo
+        dest: /etc/nginx/sites-enabled/devops-demo
+        state: link
+      notify: Recharger nginx
+
+    - name: Désactiver le site par défaut
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Recharger nginx
+
+    - name: Forcer l'application des handlers avant les démarrages
+      ansible.builtin.meta: flush_handlers
+
+    - name: Démarrer et activer les services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - devops-demo
+        - nginx
+
+    - name: Attendre que l'application réponde (health)
+      ansible.builtin.uri:
+        url: "http://localhost:{{ app_port }}/actuator/health"
+        return_content: true
+      register: health
+      until: health.status == 200
+      retries: 20
+      delay: 3
+      tags: verify
+
+    - name: Vérifier l'accès via Nginx (port 80)
+      ansible.builtin.uri:
+        url: "http://localhost/api/info"
+        status_code: 200
+      tags: verify
+
+    - name: Collecter l'état des services
+      ansible.builtin.service_facts:
+      tags: verify
+
+    - name: Contrôler que nginx et devops-demo tournent
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['nginx.service'].state == 'running'
+          - ansible_facts.services['devops-demo.service'].state == 'running'
+        success_msg: "Services nginx et devops-demo : running"
+      tags: verify
+
+  handlers:
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Redémarrer devops-demo
+      ansible.builtin.service:
+        name: devops-demo
+        state: restarted
+
+    - name: Recharger nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

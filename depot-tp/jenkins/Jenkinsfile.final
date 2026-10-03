@@ -1,0 +1,91 @@
+// Pipeline final de la formation : les 10 étapes de la chaîne CI/CD
+//  1 Git -> 2 Jenkins -> 3 Build Maven -> 4 Tests -> 5 Package
+//  6 Docker build -> 7 Registre -> 8 Déploiement -> 9 Tests après déploiement -> 10 Notification
+pipeline {
+    agent any
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    parameters {
+        booleanParam(name: 'RUN_SELENIUM', defaultValue: false, description: 'Tests fonctionnels Selenium (TP11)')
+        booleanParam(name: 'DEPLOY_K8S',   defaultValue: false, description: 'Déployer aussi sur Kubernetes (TP8, VM k8s démarrée)')
+        string(name: 'NOTIFY_URL', defaultValue: '', description: 'Webhook de notification (optionnel)')
+    }
+    triggers {
+        githubPush()
+        pollSCM('H/2 * * * *')
+    }
+    environment {
+        REGISTRY    = '192.168.56.10:5000'
+        IMAGE       = "${REGISTRY}/devops-demo"
+        TAG         = "${env.BUILD_NUMBER}"
+        TARGET_HOST = '192.168.56.11'
+        K8S_HOST    = '192.168.56.14'
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible/ansible.cfg"
+    }
+
+    stages {
+        stage('1-2 Checkout (Git -> Jenkins)') {
+            steps { checkout scm }
+        }
+        stage('3-4 Build Maven & tests') {
+            steps { dir('app') { sh 'mvn -B clean verify' } }
+            post { always { junit 'app/target/surefire-reports/*.xml' } }
+        }
+        stage('5 Package') {
+            steps { archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true }
+        }
+        stage('6 Docker build') {
+            steps {
+                dir('app') {
+                    sh 'docker build --build-arg APP_VERSION=$TAG -t $IMAGE:$TAG .'
+                }
+            }
+        }
+        stage('7 Registre') {
+            steps { sh 'docker push $IMAGE:$TAG' }
+        }
+        stage('8 Déploiement (Ansible)') {
+            steps { sh 'ansible-playbook ansible/deploy-app.yml -e image_tag=$TAG' }
+        }
+        stage('9a Smoke test (bonne version déployée ?)') {
+            steps {
+                sh 'curl -fs http://$TARGET_HOST:8080/api/info | grep -q "\\"version\\":\\"$TAG\\""'
+            }
+        }
+        stage('9b Tests fonctionnels Selenium') {
+            when { expression { params.RUN_SELENIUM } }
+            steps { dir('selenium-tests') { sh 'mvn -B test -Dapp.url=http://$TARGET_HOST:8080' } }
+            post { always { junit allowEmptyResults: true, testResults: 'selenium-tests/target/surefire-reports/*.xml' } }
+        }
+        // Barrière qualité : on ne "promeut" que ce qui a passé tous les contrôles
+        stage('Promotion (latest / stable)') {
+            steps {
+                sh 'docker tag $IMAGE:$TAG $IMAGE:latest && docker tag $IMAGE:$TAG $IMAGE:stable'
+                sh 'docker push $IMAGE:latest && docker push $IMAGE:stable'
+            }
+        }
+        stage('8bis Déploiement Kubernetes') {
+            when { expression { params.DEPLOY_K8S } }
+            steps {
+                sh '''ssh vagrant@$K8S_HOST "kubectl set image deployment/devops-demo app=$IMAGE:$TAG && kubectl rollout status deployment/devops-demo --timeout=180s"'''
+            }
+        }
+    }
+    post {
+        always {
+            // 10 Notification : rapport archivé + webhook optionnel
+            script {
+                def statut = currentBuild.currentResult
+                writeFile file: 'build-report.txt', text: "build=${env.BUILD_NUMBER}\nstatut=${statut}\nimage=${env.IMAGE}:${env.TAG}\nurl=${env.BUILD_URL}\n"
+                archiveArtifacts artifacts: 'build-report.txt'
+                if (params.NOTIFY_URL?.trim()) {
+                    sh "curl -fs -X POST -H 'Content-Type: application/json' -d '{\"text\":\"devops-demo #${env.BUILD_NUMBER} : ${statut}\"}' '${params.NOTIFY_URL}' || true"
+                }
+            }
+        }
+        success { echo "Version ${TAG} validée : http://${TARGET_HOST}:8080" }
+        failure { echo "Version ${TAG} REFUSÉE : la livraison est bloquée" }
+    }
+}

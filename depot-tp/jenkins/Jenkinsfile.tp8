@@ -1,0 +1,73 @@
+// TP8 - Pipeline complet avec tests Selenium bloquants et déploiement Kubernetes optionnel
+pipeline {
+    agent any
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    parameters {
+        booleanParam(name: 'DEPLOY_K8S', defaultValue: false, description: 'Déployer aussi sur Kubernetes (VM k8s démarrée)')
+    }
+    triggers {
+        githubPush()
+        pollSCM('H/2 * * * *')
+    }
+    environment {
+        REGISTRY    = '192.168.56.10:5000'
+        IMAGE       = "${REGISTRY}/devops-demo"
+        TAG         = "${env.BUILD_NUMBER}"
+        TARGET_HOST = '192.168.56.11'
+        K8S_HOST    = '192.168.56.14'
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible/ansible.cfg"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Build & tests unitaires') {
+            steps { dir('app') { sh 'mvn -B clean verify' } }
+            post { always { junit 'app/target/surefire-reports/*.xml' } }
+        }
+        stage('Image Docker') {
+            steps {
+                dir('app') {
+                    sh "docker build --build-arg APP_VERSION=${TAG} -t ${IMAGE}:${TAG} ."
+                }
+            }
+        }
+        stage('Publication de la version candidate') {
+            steps { sh "docker push ${IMAGE}:${TAG}" }
+        }
+        stage('Déploiement sur le serveur de test') {
+            steps { sh "ansible-playbook ansible/deploy-app.yml -e image_tag=${TAG}" }
+        }
+        stage('Tests fonctionnels Selenium') {
+            steps {
+                dir('selenium-tests') {
+                    sh "mvn -B test -Dapp.url=http://${TARGET_HOST}:8080"
+                }
+            }
+            post { always { junit 'selenium-tests/target/surefire-reports/*.xml' } }
+        }
+        // Barrière qualité : ces étapes ne s'exécutent que si Selenium a réussi
+        stage('Promotion (tags latest et stable)') {
+            steps {
+                sh "docker tag ${IMAGE}:${TAG} ${IMAGE}:latest"
+                sh "docker tag ${IMAGE}:${TAG} ${IMAGE}:stable"
+                sh "docker push ${IMAGE}:latest"
+                sh "docker push ${IMAGE}:stable"
+            }
+        }
+        stage('Déploiement Kubernetes') {
+            when { expression { params.DEPLOY_K8S } }
+            steps {
+                sh """ssh vagrant@${K8S_HOST} 'kubectl set image deployment/devops-demo app=${IMAGE}:${TAG} && kubectl rollout status deployment/devops-demo --timeout=180s'"""
+            }
+        }
+    }
+    post {
+        success { echo "Version ${TAG} validée et promue" }
+        failure { echo "Version ${TAG} REFUSÉE : la livraison est bloquée" }
+    }
+}

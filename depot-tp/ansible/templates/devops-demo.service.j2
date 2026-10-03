@@ -1,0 +1,15 @@
+[Unit]
+Description=DevOps Demo (Spring Boot) - géré par Ansible
+After=network.target
+
+[Service]
+User={{ app_user }}
+Environment=SERVER_PORT={{ app_port }}
+Environment=APP_VERSION=systemd-{{ ansible_date_time.date }}
+ExecStart=/usr/bin/java -Xmx256m -jar {{ app_dir }}/devops-demo.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

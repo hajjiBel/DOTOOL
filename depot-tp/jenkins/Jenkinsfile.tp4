@@ -1,0 +1,56 @@
+// TP4 - Pipeline CI/CD complet : build, tests, image Docker, registre, déploiement
+pipeline {
+    agent any
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    triggers {
+        githubPush()                  // webhook GitHub (nécessite une URL publique)
+        pollSCM('H/2 * * * *')        // solution de repli
+    }
+    environment {
+        REGISTRY    = '192.168.56.10:5000'
+        IMAGE       = "${REGISTRY}/devops-demo"
+        TAG         = "${env.BUILD_NUMBER}"
+        TARGET_HOST = '192.168.56.11'
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible/ansible.cfg"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Build & tests unitaires') {
+            steps { dir('app') { sh 'mvn -B clean verify' } }
+            post { always { junit 'app/target/surefire-reports/*.xml' } }
+        }
+        stage('Image Docker') {
+            steps {
+                dir('app') {
+                    sh "docker build --build-arg APP_VERSION=${TAG} -t ${IMAGE}:${TAG} -t ${IMAGE}:latest ."
+                }
+            }
+        }
+        stage('Publication au registre') {
+            steps {
+                sh "docker push ${IMAGE}:${TAG}"
+                sh "docker push ${IMAGE}:latest"
+            }
+        }
+        stage('Déploiement sur le serveur de test') {
+            steps {
+                sh "ansible-playbook ansible/deploy-app.yml -e image_tag=${TAG}"
+            }
+        }
+        stage('Smoke test') {
+            steps {
+                sh "curl -fs http://${TARGET_HOST}:8080/api/info"
+            }
+        }
+    }
+    post {
+        success { echo "Version ${TAG} déployée : http://${TARGET_HOST}:8080" }
+        failure { echo 'Pipeline en échec' }
+    }
+}

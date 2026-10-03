@@ -1,0 +1,17 @@
+pipeline {
+    agent any
+    triggers { pollSCM('H/2 * * * *') }
+    stages {
+        stage('Checkout') { steps { checkout scm } }
+        stage('Tests') {
+            steps { dir('mini-tp/calculatrice') { sh 'mvn -B test' } }
+            post { always { junit 'mini-tp/calculatrice/target/surefire-reports/*.xml' } }
+        }
+        stage('Package') {
+            steps {
+                dir('mini-tp/calculatrice') { sh 'mvn -B -DskipTests package' }
+                archiveArtifacts artifacts: 'mini-tp/calculatrice/target/*.jar'
+            }
+        }
+    }
+}

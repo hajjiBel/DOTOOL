@@ -1,0 +1,45 @@
+// Mini-TP CI/CD : build -> push -> deploy -> smoke test -> rollback automatique
+pipeline {
+    agent any
+    parameters {
+        booleanParam(name: 'BREAK_SMOKE', defaultValue: false, description: 'Simule une version défectueuse')
+    }
+    environment {
+        REGISTRY = '192.168.56.10:5000'
+        IMAGE    = "${REGISTRY}/site-demo"
+        TAG      = "${env.BUILD_NUMBER}"
+        LAST     = "${JENKINS_HOME}/site-demo.last_good"
+    }
+    stages {
+        stage('Checkout') { steps { checkout scm } }
+        stage('Build image') {
+            steps { dir('mini-tp/site-demo') { sh 'docker build --build-arg VERSION=$TAG -t $IMAGE:$TAG .' } }
+        }
+        stage('Push registre') { steps { sh 'docker push $IMAGE:$TAG' } }
+        stage('Deploy') {
+            steps { sh 'docker rm -f site-demo || true; docker run -d --name site-demo -p 8088:80 $IMAGE:$TAG; sleep 3' }
+        }
+        stage('Smoke test') {
+            steps {
+                script {
+                    def attendu = params.BREAK_SMOKE ? 'version-inexistante' : env.BUILD_NUMBER
+                    sh "curl -fs http://localhost:8088/version.txt | grep -qx '${attendu}'"
+                }
+            }
+        }
+    }
+    post {
+        success { sh 'echo $TAG > $LAST' }
+        failure {
+            script {
+                if (fileExists(env.LAST)) {
+                    def prev = readFile(env.LAST).trim()
+                    echo "ROLLBACK vers la version ${prev}"
+                    sh "docker rm -f site-demo || true; docker run -d --name site-demo -p 8088:80 ${IMAGE}:${prev}"
+                } else {
+                    echo 'Aucune version précédente connue : pas de rollback possible'
+                }
+            }
+        }
+    }
+}
