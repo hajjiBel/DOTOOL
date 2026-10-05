@@ -44,4 +44,10 @@ class TaskServiceTest {
         assertTrue(service.findAll().isEmpty());
         assertThrows(NoSuchElementException.class, () -> service.delete(t.id()));
     }
+
+
+    @Test
+void toggleUnknownIdThrows() {
+    assertThrows(java.util.NoSuchElementException.class, () -> service.toggle(9999));
+}
 }
