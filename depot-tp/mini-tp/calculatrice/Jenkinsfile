@@ -9,8 +9,8 @@ pipeline {
         }
         stage('Package') {
             steps {
-                dir('mini-tp/calculatrice') { sh 'mvn -B -DskipTests package' }
-                archiveArtifacts artifacts: 'mini-tp/calculatrice/target/*.jar'
+                dir('depot-tp/mini-tp/calculatrice') { sh 'mvn -B -DskipTests package' }
+                archiveArtifacts artifacts: 'depot-tp/mini-tp/calculatrice/target/*.jar'
             }
         }
     }
