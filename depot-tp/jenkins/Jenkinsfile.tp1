@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Tests unitaires') {
             steps { dir('depot-tp/app') { sh 'mvn -B test' } }
-            post { always { junit 'app/target/surefire-reports/*.xml' } }
+            post { always { junit 'depot/app/target/surefire-reports/*.xml' } }
         }
         stage('Package') {
             steps {
