@@ -9,16 +9,16 @@ pipeline {
             steps { checkout scm }
         }
         stage('Compilation') {
-            steps { dir('app') { sh 'mvn -B -q clean compile' } }
+            steps { dir('depot-tp/app') { sh 'mvn -B -q clean compile' } }
         }
         stage('Tests unitaires') {
-            steps { dir('app') { sh 'mvn -B test' } }
-            post { always { junit 'app/target/surefire-reports/*.xml' } }
+            steps { dir('depot-tp/app') { sh 'mvn -B test' } }
+            post { always { junit 'depot-tp/app/target/surefire-reports/*.xml' } }
         }
         stage('Package') {
             steps {
-                dir('app') { sh 'mvn -B -DskipTests package' }
-                archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true
+                dir('depot-tp/app') { sh 'mvn -B -DskipTests package' }
+                archiveArtifacts artifacts: 'depot-tp/app/target/*.jar', fingerprint: true
             }
         }
     }
