@@ -13,12 +13,12 @@ pipeline {
         }
         stage('Tests unitaires') {
             steps { dir('depot-tp/app') { sh 'mvn -B test' } }
-            post { always { junit 'depot-tp/app/target/surefire-reports/*.xml' } }
+            post { always { junit 'app/target/surefire-reports/*.xml' } }
         }
         stage('Package') {
             steps {
                 dir('depot-tp/app') { sh 'mvn -B -DskipTests package' }
-                archiveArtifacts artifacts: 'depot-tp/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true
             }
         }
     }
