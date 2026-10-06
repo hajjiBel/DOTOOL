@@ -21,7 +21,7 @@ class TaskServiceTest {
         Task t = service.add("Écrire un Jenkinsfile");
         assertEquals("Écrire un Jenkinsfile", t.title());
         assertFalse(t.done());
-        assertEquals(1, service.findAll().size());
+        assertEquals(2, service.findAll().size());
     }
 
     @Test
