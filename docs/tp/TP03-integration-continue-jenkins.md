@@ -96,9 +96,6 @@ git commit -am "Test cassé (exercice)" && git push -u origin feature/casse
 2. Pourquoi le stage *Tests* est-il avant *Package* ?
 3. Comment retrouver quel test a échoué sans lire toute la console ?
 4. Tâche : montrez un build rouge puis son retour au vert dans la *Stage View*.
-5. Pourquoi le déclenchement par *polling* n'est-il qu'un pis-aller ? (latence, charge, et le webhook est instantané)
 
-#### 10. Extension / challenge
-- Remplacez le polling par un **webhook GitHub** (`smee.io` ou `ngrok` + déclencheur `githubPush()`).
-- Ajoutez un stage qui publie un rapport de couverture JaCoCo.
-- Transformez le job en **Multibranch Pipeline** pour construire automatiquement chaque branche et PR.
+
+
