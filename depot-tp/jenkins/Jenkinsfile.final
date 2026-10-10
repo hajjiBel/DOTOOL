@@ -30,15 +30,15 @@ pipeline {
             steps { checkout scm }
         }
         stage('3-4 Build Maven & tests') {
-            steps { dir('app') { sh 'mvn -B clean verify' } }
-            post { always { junit 'app/target/surefire-reports/*.xml' } }
+            steps { dir('depot-tp/app') { sh 'mvn -B clean verify' } }
+            post { always { junit 'depot-tp/app/target/surefire-reports/*.xml' } }
         }
         stage('5 Package') {
-            steps { archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true }
+            steps { archiveArtifacts artifacts: 'depot-tp/app/target/*.jar', fingerprint: true }
         }
         stage('6 Docker build') {
             steps {
-                dir('app') {
+                dir('depot-tp/app') {
                     sh 'docker build --build-arg APP_VERSION=$TAG -t $IMAGE:$TAG .'
                 }
             }
@@ -47,7 +47,7 @@ pipeline {
             steps { sh 'docker push $IMAGE:$TAG' }
         }
         stage('8 Déploiement (Ansible)') {
-            steps { sh 'ansible-playbook ansible/deploy-app.yml -e image_tag=$TAG' }
+            steps { sh 'ansible-playbook depot-tp/ansible/deploy-app.yml -e image_tag=$TAG' }
         }
         stage('9a Smoke test (bonne version déployée ?)') {
             steps {
