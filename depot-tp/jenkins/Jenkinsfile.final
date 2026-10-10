@@ -47,7 +47,9 @@ pipeline {
             steps { sh 'docker push $IMAGE:$TAG' }
         }
         stage('8 Déploiement (Ansible)') {
-            steps { sh 'ansible-playbook depot-tp/ansible/deploy-app.yml -e image_tag=$TAG' }
+            
+             
+            steps{  dir('depot-tp/ansible') { sh 'ansible-playbook depot-tp/ansible/deploy-app.yml -e image_tag=$TAG' }}
         }
         stage('9a Smoke test (bonne version déployée ?)') {
             steps {
