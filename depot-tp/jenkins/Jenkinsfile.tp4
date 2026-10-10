@@ -40,7 +40,7 @@ pipeline {
         }
         stage('Déploiement sur le serveur de test') {
             steps {
-                sh "ansible-playbook ansible/deploy-app.yml -e image_tag=${TAG}"
+                sh "ansible-playbook depot-tp/ansible/deploy-app.yml -e image_tag=${TAG}"
             }
         }
         stage('Smoke test') {
