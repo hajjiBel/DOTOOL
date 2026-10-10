@@ -49,7 +49,7 @@ pipeline {
         stage('8 Déploiement (Ansible)') {
             
              
-            steps{  dir('depot-tp/ansible') { sh 'ansible-playbook depot-tp/ansible/deploy-app.yml -e image_tag=$TAG' }}
+            steps{  dir('depot-tp/ansible') { sh 'ansible-playbook deploy-app.yml -e image_tag=$TAG' }}
         }
         stage('9a Smoke test (bonne version déployée ?)') {
             steps {
