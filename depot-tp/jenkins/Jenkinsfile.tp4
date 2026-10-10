@@ -22,12 +22,12 @@ pipeline {
             steps { checkout scm }
         }
         stage('Build & tests unitaires') {
-            steps { dir('app') { sh 'mvn -B clean verify' } }
-            post { always { junit 'app/target/surefire-reports/*.xml' } }
+            steps { dir('depot-tp/app') { sh 'mvn -B clean verify' } }
+            post { always { junit 'depot-tp/app/target/surefire-reports/*.xml' } }
         }
         stage('Image Docker') {
             steps {
-                dir('app') {
+                dir('depot-tp/app') {
                     sh "docker build --build-arg APP_VERSION=${TAG} -t ${IMAGE}:${TAG} -t ${IMAGE}:latest ."
                 }
             }
