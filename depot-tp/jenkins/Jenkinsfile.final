@@ -71,7 +71,7 @@ pipeline {
         stage('8bis Déploiement Kubernetes') {
             when { expression { params.DEPLOY_K8S } }
             steps {
-                sh '''ssh vagrant@$K8S_HOST "kubectl set image deployment/devops-demo app=$IMAGE:$TAG && kubectl rollout status deployment/devops-demo --timeout=180s"'''
+                sh '''ssh vagrant@k8s "kubectl set image deployment/devops-demo app=$IMAGE:$TAG && kubectl rollout status deployment/devops-demo --timeout=180s"'''
             }
         }
     }
