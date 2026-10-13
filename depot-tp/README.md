@@ -35,6 +35,3 @@ Total si tout tourne : ~16 Go. Jour 1 seul : ~6 Go.
 
 ---
 
-## Ajouts pour la version « 3 jours »
-
-Voir `../docs/00-LISEZ-MOI.md`. Nouveaux fichiers : `mini-tp/` (calculatrice, site-demo, compose-db, k8s-nginx, logs, selenium), `ansible/mini-tp/`, `jenkins/Jenkinsfile.final`, `jenkins/Jenkinsfile.rollback`, `k8s/configmap.yaml`, `k8s/secret.yaml`, `solutions/alert-slowrequests.yml`. Ces fichiers n'ont pas pu être exécutés lors de leur conception : faites un déroulé complet avant la session.
