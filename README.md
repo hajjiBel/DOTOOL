@@ -4,19 +4,19 @@ Onze TP qui mènent un `git push` jusqu'à une application déployée, testée e
 
 ## Parcours
 
-| TP | Thème | Durée |
-|---|---|---|
-| 01 | Git en équipe | 
-| 02 | Maven et tests | 
-| 03 | Intégration continue avec Jenkins | 
-| 04 | Docker | 
-| 05 | Docker Compose et registre | 
-| 06 | Ansible | 
-| 07 | Pipeline CI/CD complet |
-| 08 | Kubernetes | 
-| 09 | Logs avec ELK | 
-| 10 | Prometheus et Grafana | 
-| 11 | Selenium | 
+| TP | Thème 
+|---|---
+| 01 | Git en équipe 
+| 02 | Maven et tests 
+| 03 | Intégration continue avec Jenkins 
+| 04 | Docker
+| 05 | Docker Compose et registre
+| 06 | Ansible 
+| 07 | Pipeline CI/CD complet 
+| 08 | Kubernetes 
+| 09 | Logs avec ELK 
+| 10 | Prometheus et Grafana 
+| 11 | Selenium 
 
 Chaque TP suit trois niveaux : découverte, mini-TP, puis intégration dans le fil rouge.
 
