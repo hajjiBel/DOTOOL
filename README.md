@@ -1,4 +1,4 @@
-# Formation DevOps CI/CD
+# Formation sur les Outils DevOps 
 
 Onze TP qui mènent un `git push` jusqu'à une application déployée, testée et supervisée, sur une petite application Java fil rouge (gestionnaire de tâches, Spring Boot 3.3.5, Java 21).
 
@@ -6,19 +6,19 @@ Onze TP qui mènent un `git push` jusqu'à une application déployée, testée e
 
 | TP | Thème | Durée |
 |---|---|---|
-| 01 | Git en équipe | 90 min |
-| 02 | Maven et tests | 75 min |
-| 03 | Intégration continue avec Jenkins | 90 min |
-| 04 | Docker | 105 min |
-| 05 | Docker Compose et registre | 60 min |
-| 06 | Ansible | 105 min |
-| 07 | Pipeline CI/CD complet | 150 min |
-| 08 | Kubernetes | 105 min |
-| 09 | Logs avec ELK | 75 min |
-| 10 | Prometheus et Grafana | 75 min |
-| 11 | Selenium | 45 min |
+| 01 | Git en équipe | 
+| 02 | Maven et tests | 
+| 03 | Intégration continue avec Jenkins | 
+| 04 | Docker | 
+| 05 | Docker Compose et registre | 
+| 06 | Ansible | 
+| 07 | Pipeline CI/CD complet |
+| 08 | Kubernetes | 
+| 09 | Logs avec ELK | 
+| 10 | Prometheus et Grafana | 
+| 11 | Selenium | 
 
-Total : 16 h 15. Chaque TP suit trois niveaux : découverte, mini-TP, puis intégration dans le fil rouge.
+Chaque TP suit trois niveaux : découverte, mini-TP, puis intégration dans le fil rouge.
 
 ## Prérequis
 
