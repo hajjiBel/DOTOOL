@@ -54,7 +54,7 @@ TP07 (pipeline `Jenkinsfile.final`, application déployée sur `target`).
 
 ```mermaid
 flowchart LR
-  T["Test JUnit (Java)<br/>driver.findElement(By.id(&quot;btn&quot;)).click()"] --> WD["Selenium WebDriver"] --> CD["ChromeDriver"] --> CH["Chrome headless<br/>(sans fenêtre)"] --> SITE["Site / application<br/>sous test"]
+  T["Test JUnit (Java)<br/>driver.findElement(By.id('btn')).click()"] --> WD["Selenium WebDriver"] --> CD["ChromeDriver"] --> CH["Chrome headless<br/>(sans fenêtre)"] --> SITE["Site / application<br/>sous test"]
   SITE -->|"page HTML"| CH
   CH -->|"éléments trouvés ou NoSuchElementException"| T
 ```
@@ -66,7 +66,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A["Développeur renomme<br/>id=&quot;btn&quot; en id=&quot;bouton&quot;"] --> B["Tests unitaires ✅"] --> C["Image construite ✅"] --> D["Déploiement ✅"] --> E["Selenium ❌<br/>NoSuchElementException"]
+  A["Développeur renomme<br/>id='btn' en id='bouton'"] --> B["Tests unitaires ✅"] --> C["Image construite ✅"] --> D["Déploiement ✅"] --> E["Selenium ❌<br/>NoSuchElementException"]
   E --> F["⛔ Promotion bloquée"]
 ```
 
@@ -115,7 +115,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A["1. Lancer le site<br/>site-demo:2 sur 8089"] --> B["2. mvn test<br/>2 tests VERTS ✅"] --> C["3. Régression :<br/>id btn → bouton"] --> D["4. Rebuild + relance<br/>site-demo:3"] --> E["5. mvn test<br/>ROUGE ❌"] --> F["6. Restaurer"]
+  A["1) Lancer le site<br/>site-demo:2 sur 8089"] --> B["2) mvn test<br/>2 tests VERTS ✅"] --> C["3) Régression :<br/>id btn → bouton"] --> D["4) Rebuild + relance<br/>site-demo:3"] --> E["5) mvn test<br/>ROUGE ❌"] --> F["6) Restaurer"]
 ```
 
 **Fichier** `mini-tp/selenium/src/test/java/tn/formation/selenium/SiteDemoTest.java` (fourni)
@@ -252,7 +252,7 @@ docker rm -f site
 
 ```mermaid
 flowchart LR
-  A["1. Lire AppUiTest<br/>5 tests"] --> B["2. mvn test<br/>contre target:8080"] --> C["3. Écrire UN test<br/>tâche vide"] --> D["4. Pipeline<br/>RUN_SELENIUM coché"] --> E["5. Démo de la barrière<br/>régression → stable inchangé"] --> F["6. Correction<br/>stable avance"]
+  A["1) Lire AppUiTest<br/>5 tests"] --> B["2) mvn test<br/>contre target:8080"] --> C["3) Écrire UN test<br/>tâche vide"] --> D["4) Pipeline<br/>RUN_SELENIUM coché"] --> E["5) Démo de la barrière<br/>régression → stable inchangé"] --> F["6) Correction<br/>stable avance"]
 ```
 
 ### 8.2 Pas à pas
