@@ -449,11 +449,6 @@ git log --oneline --graph
 4. `git log --oneline --graph` sur `main`, ou `git branch --merged main` (la branche doit apparaître).
 5. Il s'arrête, marque le conflit avec `<<<<<<<` / `=======` / `>>>>>>>` et attend qu'un humain tranche.
 
-## 10. Extension / challenge
-
-- Créez un tag `v1.0.0` sur `main` et poussez-le (`git tag v1.0.0 && git push --tags`).
-- Annulez proprement un commit déjà poussé avec `git revert`, sans réécrire l'historique.
-- Réécrivez l'historique d'une branche locale avec `git rebase main` et comparez le graphe avec un `merge`.
 
 ## Glossaire du TP
 
