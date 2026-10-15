@@ -389,11 +389,6 @@ Repérez : variables, handlers, tags. *(Java + Nginx + utilisateurs + service sy
 4. `ansible-playbook deploy-app.yml -e image_tag=1.1` puis `curl .../api/info`.
 5. `/vagrant` est un dossier partagé accessible en écriture à tous : Ansible **ignore `ansible.cfg`** par sécurité.
 
-## 10. Extension / challenge
-
-- Transformez `tp-nginx.yml` en **rôle** : `ansible-galaxy init roles/nginx_demo`, déplacez tâches, templates, handlers et variables par défaut.
-- Chiffrez une variable avec **Ansible Vault** (`ansible-vault encrypt_string`).
-- Ajoutez un utilisateur opérateur dans la variable `operators` de `site.yml` et rejouez.
 
 ## Glossaire du TP
 
