@@ -348,16 +348,7 @@ curl -s http://192.168.56.11:8080/api/info
 ```
 ✅ `"version":"1.0"` — et vous n'avez **tapé aucune commande sur `target`**.
 
-**Étape 4 — Publier puis déployer la 1.1** 🖥️
-```bash
-docker tag devops-demo:1.0 192.168.56.10:5000/devops-demo:1.1
-docker push 192.168.56.10:5000/devops-demo:1.1
-ansible-playbook deploy-app.yml -e image_tag=1.1
-curl -s http://192.168.56.11:8080/api/info
-```
-> *(Rappel : la version affichée vient de l'`APP_VERSION` donnée au conteneur par Ansible.)*
 
-✅ `"version":"1.1"`.
 
 **Étape 5 — Discussion** : cette tâche est-elle idempotente ? **Non** : `recreate: true` force la recréation du conteneur à chaque exécution ; c'est un **choix volontaire** pour garantir que la bonne version tourne.
 
