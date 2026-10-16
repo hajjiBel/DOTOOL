@@ -167,15 +167,7 @@ curl -s http://192.168.56.11:8080/api/info
 ### Partie B — le pipeline final, étape par étape (25 min)
 
 **Étape 5 — Créer le job `devops-final` et comparer** 🌐
-Nouveau job **`devops-final`** → Script Path `jenkins/Jenkinsfile.final`. Ouvrez les deux fichiers (`Jenkinsfile.tp4` et `Jenkinsfile.final`) et **complétez le tableau** :
-
-| Étape | Stage (nom exact dans le fichier) | Preuve visible |
-|---|---|---|
-| 6 Docker build | ? | image `devops-demo:<n>` |
-| 7 Registre | ? | tag dans le catalogue |
-| 8 Déploiement | ? | version qui change |
-| 9 Tests après déploiement | ? | stage vert + `grep` de la version |
-| 10 Notification | ? | `build-report.txt` archivé |
+Nouveau job **`devops-final`** → Script Path `jenkins/Jenkinsfile.final`. Ouvrez les deux fichiers (`Jenkinsfile.tp4` et `Jenkinsfile.final`)
 
 **Étape 6 — Lancer avec les paramètres par défaut** 🌐
 **Build with Parameters** → `RUN_SELENIUM` et `DEPLOY_K8S` **décochés** (ils seront activés aux TP11 et TP08) → Build.
